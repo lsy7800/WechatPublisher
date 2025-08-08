@@ -32,4 +32,3 @@ class FileManager:
             shutil.rmtree(folder_path)
             return True
         return False
-
