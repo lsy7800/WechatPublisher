@@ -26,6 +26,14 @@ class FileManager:
         os.makedirs(output_folder, exist_ok=True)
         return output_folder
 
+    def get_output_folder(self, pdf_path):
+        """获取PDF文件的输出文件夹路径"""
+        pdf_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        output_folder = os.path.join(self.output_base_path, pdf_name)
+        if not os.path.exists(output_folder):
+            raise FileNotFoundError(f"输出文件夹未找到：{output_folder}")
+        return output_folder
+
     def delete_folder(self, folder_path):
         """删除指定文件夹及其内容"""
         if os.path.exists(folder_path):
