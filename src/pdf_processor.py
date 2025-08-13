@@ -1,6 +1,6 @@
 import os
 from PyPDF2 import PdfReader, PdfWriter
-from reportlab.lib.pagesizes import A3
+from reportlab.lib.pagesizes import A3, A4
 from reportlab.pdfgen import canvas
 import fitz
 from io import BytesIO
@@ -30,14 +30,14 @@ class PDFProcessor:
     def _create_image_watermark_pdf(self):
         """创建包含居中图片水印的PDF"""
         buffer = BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A3)
-        page_width, page_height = A3  # 612x792 pt
+        c = canvas.Canvas(buffer, pagesize=A4)
+        page_width, page_height = A4  # 612x792 pt
 
         # 动态获取水印图片尺寸
         with Image.open(self.watermark_image) as img:
             watermark_width, watermark_height = img.size
             # 按比例缩放，限制最大宽度为200 pt
-            max_width = 650
+            max_width = 450
             if watermark_width > max_width:
                 scale = max_width / watermark_width
                 watermark_width = max_width

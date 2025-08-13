@@ -59,6 +59,10 @@ def main():
         logger.warning("未在桌面上找到PDF文件")
         return
 
+    output_pdfs = []
+    titles = []
+    output_folders = []
+
     # 处理每个PDF文件
     for pdf_path in pdf_files:
         try:
@@ -74,19 +78,40 @@ def main():
             output_folder = pdf_processor.convert_pdf_to_images(output_pdf)
             logger.info(f"PNG图片生成在：{output_folder}")
 
-            # 创建图文消息
-            title = f"试题分享： {os.path.splitext(os.path.basename(pdf_path))[0]}"  # 动态标题
-            article_media_id = wechat_uploader.create_article(output_pdf, title=title,
-                                                              cover_image_path=cover_image_path)
-            logger.info(f"图文消息创建成功，media_id: {article_media_id}")
-
-            # 可选：删除临时文件
-            file_manager.delete_folder(output_folder)
-            os.remove(output_pdf)
+            # 收集
+            output_pdfs.append(output_pdf)
+            title = f"试卷分享-{os.path.splitext(os.path.basename(pdf_path))[0]}"
+            titles.append(title)
+            output_folders.append(output_folder)
 
         except Exception as e:
             logger.error(f"处理PDF文件失败：{pdf_path}, 错误：{e}")
             continue
+
+        if not output_pdfs:
+            logger.warning("没有成功处理PDF文件, 无法创建图文消息")
+            return
+
+    # 创建图文消息
+    try:
+        article_media_id = wechat_uploader.create_article(output_pdfs, titles, cover_image_path=cover_image_path)
+        logger.info(f"多篇文章草稿创建成功, media_id: {article_media_id}")
+
+    except Exception as e:
+        logger.error(f"创建多文章图文消息失败，错误：{e}")
+        return
+
+    finally:
+        # 删除临时文件
+        for output_pdf, output_folder in zip(output_pdfs, output_folders):
+            try:
+                if os.path.exists(output_pdf):
+                    os.remove(output_pdf)
+                    logger.info(f"删除临时水印PDF：{output_pdf}")
+                file_manager.delete_folder(output_folder)
+                logger.info(f"删除临时PNG文件夹：{output_folder}")
+            except Exception as e:
+                logger.error(f"删除临时文件失败：{output_pdf} 或 {output_folder}, 错误：{e}")
 
 
 if __name__ == "__main__":
